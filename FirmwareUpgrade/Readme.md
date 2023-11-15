@@ -35,3 +35,26 @@ D264B8204F0E1828: Nextion device serial number
 16777216: FLASH Size in bytes
 
 At this point, Protocol Reparse is in passive, but Address Mode may need handling. If Nextion address is 0, then the remainder of the instructions can be sent as normal. But if Nextion is in Address mode where the address is other than 0, then the remainder of the instructions will need to be sent with the two byte address prefixed to each instruction. In the above example connect string, the Nextion address is 2556, or hex 0x09FC. This would require the remaining instructions to be sent prefixed with the two bytes 0xFC 0x09.
+
+# Step 3. Conditionally handling sleep and dim
+
+It is best to handle any necessary steps needed to counter sleep functions or low dim at this this point. If your HMI project does not make use of low dim or sleep functions, you can skip this step and proceed to Step 4.
+
+Using the get instruction, query the necessary system variables for your sleep functions and dim setting used and conditionally adjust them as desired to avoid any potential conflicts with the upload process. As these are user project dependent and all simple instructions from the Nextion Instruction Set, there is no need to cover in depth here.
+
+# Step 4. Upload the firmware
+
+Now that the serial port and current baud rate is known – send the upload command.
+
+whmi-wri filesize,baud,res0ÿÿÿ
+filesize: filesize of the tft file (byte)
+baud: baud rate
+res0: reserved, it can be filled with any ASCII character
+
+The Nextion device will send a 0x05 byte within 500ms after receiving the whmi-wri instruction notifying that it is ready to begin receiving the .tft file contents. Users must wait until this 0x05 byte is received before sending or risk that the data sent before Nextion was ready will be deemed lost (and therefore a corrupted and unusable upload). Users must split the .tft file contents into 4096 byte sized packets with the final partial packet size equal to the last remaining bytes (<4096 bytes).
+
+Users then sends out each packet, and in turn wait for the Nextion to return its 0x05 byte confirming reception and readiness to receive the next pack. Once the final partial packet has been sent and the confirmation 0x05 has been received, the upload portion is complete.
+
+# Step 5. After the firmware upload
+
+After the firmware is complete, Nextion will reset and make any necessary firmware adjustments internal to the Nextion device. It is important to wait for these procedures to complete, they are not instant, nor is their time to complete foreknown. As per the Nextion Instruction Set, Nextion will send an 0x88 Return Data notification indicating it is now ready. It is wise to wait for such notification before proceeding with your normal upgraded HMI processing.
