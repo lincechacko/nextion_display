@@ -58,3 +58,7 @@ Users then sends out each packet, and in turn wait for the Nextion to return its
 # Step 5. After the firmware upload
 
 After the firmware is complete, Nextion will reset and make any necessary firmware adjustments internal to the Nextion device. It is important to wait for these procedures to complete, they are not instant, nor is their time to complete foreknown. As per the Nextion Instruction Set, Nextion will send an 0x88 Return Data notification indicating it is now ready. It is wise to wait for such notification before proceeding with your normal upgraded HMI processing.
+
+# If Firmware Upload got Failed
+
+if your firmware upload is failed and display is showing "System Data Error" then , the device baud rate will be chnaged to default baudrate which is 9600 , so if you try to connect with the previous baud rate you were using then the device will not respond , so you need to do the previous steps with 9600 baud rate and can change the baud rate at Step 4 .
